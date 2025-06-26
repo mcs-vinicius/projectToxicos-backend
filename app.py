@@ -114,8 +114,25 @@ class HomeContent(db.Model):
     content_section = db.Column(db.Text)
 
 # --- Bloco de código temporário para criar as tabelas ---
-with app.app_context():
-    db.create_all()
+# --- with app.app_context():
+# ---     db.create_all()
+
+ # Verifica se o conteúdo da home já existe
+    if not HomeContent.query.get(1):
+        print("Conteúdo da Home não encontrado, criando entrada padrão...")
+        # Cria uma entrada padrão se não houver nenhuma
+        default_content = HomeContent(
+            id=1,
+            leader="Nome do Líder",
+            focus="Foco do Clã",
+            league="Liga Atual",
+            requirements="Requisito 1;Requisito 2, Requisito 3",
+            about_us="Sobre o nosso clã...",
+            content_section="Conteúdo adicional..."
+        )
+        db.session.add(default_content)
+        db.session.commit()
+        print("Entrada padrão da Home criada com sucesso.")
 
 # --- Decorators de Proteção de Rota ---
 def login_required(f):
