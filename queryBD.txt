@@ -1,0 +1,105 @@
+----- Locall
+
+CREATE DATABASE ranking_system;
+
+USE ranking_system;
+
+-- Tabela de temporadas (sem alterações)
+CREATE TABLE seasons (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL
+);
+
+-- Tabela de usuários (ATUALIZADA)
+-- Adicionado 'role' e link para 'user_profiles'
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('member', 'leader', 'admin') NOT NULL DEFAULT 'member',
+    habby_id VARCHAR(50) UNIQUE -- ID do Habby para vincular ao perfil
+);
+
+-- NOVA Tabela: Perfis de Usuário
+CREATE TABLE user_profiles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    habby_id VARCHAR(50) NOT NULL UNIQUE,
+    nick VARCHAR(100),
+    profile_pic_url VARCHAR(512),
+    atk INT,
+    hp INT,
+    
+    -- Status do Sobrevivente
+    survivor_base_atk INT,
+    survivor_base_hp INT,
+    survivor_bonus_atk DECIMAL(5,2),
+    survivor_bonus_hp DECIMAL(5,2),
+    survivor_final_atk INT,
+    survivor_final_hp INT,
+    survivor_crit_rate DECIMAL(5,2),
+    survivor_crit_damage DECIMAL(5,2),
+    survivor_skill_damage DECIMAL(5,2),
+    survivor_shield_boost DECIMAL(5,2),
+    survivor_poison_targets DECIMAL(5,2),
+    survivor_weak_targets DECIMAL(5,2),
+    survivor_frozen_targets DECIMAL(5,2),
+    
+    -- Status do Bichinho
+    pet_base_atk INT,
+    pet_base_hp INT,
+    pet_crit_damage DECIMAL(5,2),
+    pet_skill_damage DECIMAL(5,2),
+    
+    -- Coletáveis
+    collect_final_atk INT,
+    collect_final_hp INT,
+    collect_crit_rate DECIMAL(5,2),
+    collect_crit_damage DECIMAL(5,2),
+    collect_skill_damage DECIMAL(5,2),
+    collect_poison_targets DECIMAL(5,2),
+    collect_weak_targets DECIMAL(5,2),
+    collect_frozen_targets DECIMAL(5,2),
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
+-- Tabela de participantes (ATUALIZADA)
+-- Adicionado 'habby_id' para vincular a um perfil de usuário
+CREATE TABLE participants (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    season_id INT NOT NULL,
+     habby_id VARCHAR(50), -- Pode ser nulo se o participante não for um usuário registrado
+    name VARCHAR(100) NOT NULL,
+    fase INT NOT NULL,
+    r1 INT NOT NULL,
+    r2 INT NOT NULL,
+    r3 INT NOT NULL,
+    total INT AS (r1 + r2 + r3) STORED,
+    FOREIGN KEY (season_id) REFERENCES seasons(id) ON DELETE CASCADE
+);
+
+-- NOVA Tabela: Conteúdo da Home Page
+CREATE TABLE home_content (
+    id INT PRIMARY KEY DEFAULT 1,
+    leader VARCHAR(255),
+    focus VARCHAR(255),
+    league VARCHAR(255),
+    requirements TEXT,
+    about_us TEXT,
+    content_section TEXT
+);
+
+-- Inserção de dados iniciais para a Home Page
+INSERT INTO home_content (leader, focus, league, requirements, about_us, content_section) 
+VALUES ('Stakahou', 'Expedição & Exploração', 'Elite II', '+400k de Ataque;Participação ativa na expedição;+700 troféus semanais', 'A Fraternidade da Espada é um coletivo de guerreiros de elite...', 'Aqui você encontrará guias, estratégias...');
+
+-- Inserção do Administrador (operação única)
+-- Este comando deve ser executado apenas uma vez na configuração inicial do banco.
+-- A lógica no backend impedirá a criação de outros administradores.
+-- INSERT INTO users (username, password, role, habby_id) VALUES ('admin', 'senha_super_segura_hash', 'admin', 'ADMIN_HABBY_ID');
+
+
+
