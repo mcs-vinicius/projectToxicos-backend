@@ -115,26 +115,26 @@ class HomeContent(db.Model):
 
 # --- Bloco de código temporário para criar as tabelas ---
 # INSIRA O BLOCO AQUI, FORA DA CLASSE
-with app.app_context():
-    # Cria todas as tabelas que ainda não existem
-    db.create_all()
+# with app.app_context():
+#     # Cria todas as tabelas que ainda não existem
+#     db.create_all()
 
-    # Verifica se o conteúdo da home já existe
-    if not HomeContent.query.get(1):
-        print("Conteúdo da Home não encontrado, criando entrada padrão...")
-        # Cria uma entrada padrão se não houver nenhuma
-        default_content = HomeContent(
-            id=1,
-            leader="Nome do Líder",
-            focus="Foco do Clã",
-            league="Liga Atual",
-            requirements="Requisito 1;Requisito 2",
-            about_us="Sobre o nosso clã...",
-            content_section="Conteúdo adicional..."
-        )
-        db.session.add(default_content)
-        db.session.commit()
-        print("Entrada padrão da Home criada com sucesso.")
+#     # Verifica se o conteúdo da home já existe
+#     if not HomeContent.query.get(1):
+#         print("Conteúdo da Home não encontrado, criando entrada padrão...")
+#         # Cria uma entrada padrão se não houver nenhuma
+#         default_content = HomeContent(
+#             id=1,
+#             leader="Nome do Líder",
+#             focus="Foco do Clã",
+#             league="Liga Atual",
+#             requirements="Requisito 1;Requisito 2",
+#             about_us="Sobre o nosso clã...",
+#             content_section="Conteúdo adicional..."
+#         )
+#         db.session.add(default_content)
+#         db.session.commit()
+#         print("Entrada padrão da Home criada com sucesso.")
 
  
 
