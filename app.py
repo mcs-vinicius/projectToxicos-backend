@@ -118,7 +118,7 @@ class HomeContent(db.Model):
 # ---     db.create_all()
 
  # Verifica se o conteúdo da home já existe
-    if not HomeContent.query.get(1):
+if not HomeContent.query.get(1):
         print("Conteúdo da Home não encontrado, criando entrada padrão...")
         # Cria uma entrada padrão se não houver nenhuma
         default_content = HomeContent(
