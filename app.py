@@ -113,6 +113,9 @@ class HomeContent(db.Model):
     about_us = db.Column(db.Text)
     content_section = db.Column(db.Text)
 
+# --- Bloco de código temporário para criar as tabelas ---
+with app.app_context():
+    db.create_all()
 
 # --- Decorators de Proteção de Rota ---
 def login_required(f):
