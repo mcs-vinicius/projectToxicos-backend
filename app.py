@@ -19,7 +19,7 @@ prod_origin = os.environ.get('FRONTEND_URL', 'https://clatoxicos.vercel.app')
 CORS(
     app, 
     supports_credentials=True, 
-    origins=["https://clatoxicos.vercel.app", "http://localhost:5173"] 
+    origins=[prod_origin, 'http://localhost:5173'] # Mantém o localhost para desenvolvimento
 )
 
 # Chave secreta para a sessão, lida de variáveis de ambiente
@@ -27,8 +27,7 @@ app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 
 # --- Configuração do Banco de Dados (PostgreSQL via SQLAlchemy) ---
 # A URL do banco de dados é lida da variável de ambiente 'DATABASE_URL' configurada no Render
-# Use o banco de dados do Render em produção, ou um banco SQLite para desenvolvimento local
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///local.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -113,30 +112,6 @@ class HomeContent(db.Model):
     about_us = db.Column(db.Text)
     content_section = db.Column(db.Text)
 
-# --- Bloco de código temporário para criar as tabelas ---
-# INSIRA O BLOCO AQUI, FORA DA CLASSE
-# with app.app_context():
-#     # Cria todas as tabelas que ainda não existem
-#     db.create_all()
-
-#     # Verifica se o conteúdo da home já existe
-#     if not HomeContent.query.get(1):
-#         print("Conteúdo da Home não encontrado, criando entrada padrão...")
-#         # Cria uma entrada padrão se não houver nenhuma
-#         default_content = HomeContent(
-#             id=1,
-#             leader="Nome do Líder",
-#             focus="Foco do Clã",
-#             league="Liga Atual",
-#             requirements="Requisito 1;Requisito 2",
-#             about_us="Sobre o nosso clã...",
-#             content_section="Conteúdo adicional..."
-#         )
-#         db.session.add(default_content)
-#         db.session.commit()
-#         print("Entrada padrão da Home criada com sucesso.")
-
- 
 
 # --- Decorators de Proteção de Rota ---
 def login_required(f):
