@@ -10,7 +10,7 @@ from functools import wraps
 app = Flask(__name__)
 
 # URL do seu frontend em produção
-prod_origin = 'https://seu-projeto-na-vercel.vercel.app' 
+prod_origin = 'https://clatoxicos.vercel.app' 
 
 # Configuração do CORS
 CORS(
@@ -19,16 +19,33 @@ CORS(
     origins=[prod_origin, 'http://localhost:5173'] # Adicione a porta do Vite local
 )
 
-app.secret_key = os.urandom(24)
+app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 
 # --- Configuração do Banco de Dados ---
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'root'
-app.config['MYSQL_DB'] = 'ranking_system'
-app.config['MYSQL_CURSORCLASS'] = 'DictCursor' # Retorna resultados como dicionários
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-mysql = MySQL(app)
+db = SQLAlchemy(app)
+
+# --- Modelos do Banco de Dados ---
+class User(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(255), unique=True, nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(50), nullable=False, default='member')
+    habby_id = db.Column(db.String(50), unique=True)
+    profile = db.relationship('UserProfile', backref='user', uselist=False, cascade="all, delete-orphan")
+
+class UserProfile(db.Model):
+    __tablename__ = 'user_profiles'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    habby_id = db.Column(db.String(50), unique=True, nullable=False)
+    nick = db.Column(db.String(100))
+    profile_pic_url = db.Column(db.String(512))
+    # ... (outros campos do perfil)
+
 
 # --- Decorators de Proteção de Rota ---
 def login_required(f):
