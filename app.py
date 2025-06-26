@@ -27,7 +27,8 @@ app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 
 # --- Configuração do Banco de Dados (PostgreSQL via SQLAlchemy) ---
 # A URL do banco de dados é lida da variável de ambiente 'DATABASE_URL' configurada no Render
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+# Use o banco de dados do Render em produção, ou um banco SQLite para desenvolvimento local
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///local.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -481,5 +482,17 @@ def update_home_content():
         return jsonify({'error': f'Erro ao atualizar conteúdo: {e}'}), 500
 
 
+def create_tables():
+    with app.app_context():
+        print("Criando tabelas no banco de dados...")
+        db.create_all()
+        print("Tabelas criadas com sucesso.")
+
 if __name__ == '__main__':
-    app.run(debug=True, port=int(os.environ.get('PORT', 5000)))
+    # Se você executar 'python app.py init-db' no seu terminal, isso irá criar as tabelas.
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == 'init-db':
+        create_tables()
+    else:
+        # Inicia o servidor de desenvolvimento
+        app.run(debug=True, port=int(os.environ.get('PORT', 5000)))
