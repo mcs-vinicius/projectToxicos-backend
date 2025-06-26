@@ -1,9 +1,8 @@
 # Backend/requirements.txt
 
 Flask
-Flask-Cors
-Werkzeug
-gunicorn
-psycopg2-binary
 Flask-SQLAlchemy
-python-dotenv
+Flask-Cors
+psycopg2-binary
+gunicorn
+Werkzeug
