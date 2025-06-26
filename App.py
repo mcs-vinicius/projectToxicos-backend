@@ -10,7 +10,7 @@ from datetime import datetime # <- CORREÇÃO: Importação adicionada aqui
 from sqlalchemy import or_
 
 app = Flask(__name__)
-
+ 
 # --- Configurações Iniciais ---
 # ATUALIZE ESTA URL com a URL do seu frontend em produção no Render
 prod_origin = os.environ.get('FRONTEND_URL', 'https://clatoxicos.vercel.app') 
