@@ -123,6 +123,10 @@ class HomeContent(db.Model):
     about_us = db.Column(db.Text)
     content_section = db.Column(db.Text)
 
+#USAR APENAS UMA VEZ NO PRIMEIRO DEPLOY PARA CONSTRUÇÃO DO BANCO DE DADOS
+# with app.app_context():
+#     db.create_all()
+
 # --- Decorators e Endpoints ---
 # (O restante do seu código de rotas permanece o mesmo)
 def login_required(f):
@@ -415,6 +419,31 @@ def create_season():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': f'Erro ao criar temporada: {e}'}), 500
+
+@app.route('/seasons/<int:season_id>', methods=['DELETE'])
+@roles_required(['admin']) # 1. Protege a rota, apenas admins podem acessar
+def delete_season(season_id):
+    # 2. Busca a temporada no banco de dados pelo ID fornecido na URL
+    season_to_delete = Season.query.get(season_id)
+
+    # 3. Verifica se a temporada realmente existe
+    if not season_to_delete:
+        return jsonify({'error': 'Temporada não encontrada.'}), 404
+
+    try:
+        # 4. Deleta a temporada. 
+        # Graças ao 'cascade="all, delete-orphan"' no seu modelo, 
+        # todos os participantes associados a esta temporada serão excluídos automaticamente.
+        db.session.delete(season_to_delete)
+        
+        # 5. Confirma a transação no banco de dados
+        db.session.commit()
+        
+        return jsonify({'message': 'Temporada e todos os seus registros foram excluídos com sucesso!'}), 200
+    except Exception as e:
+        # Em caso de erro, reverte a transação para não corromper o banco
+        db.session.rollback()
+        return jsonify({'error': f'Erro ao excluir a temporada: {e}'}), 500
 
 @app.route('/history/<string:habby_id>', methods=['GET'])
 @login_required
