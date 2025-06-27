@@ -14,8 +14,6 @@ app = Flask(__name__)
 # --- Configurações Iniciais ---
 # ATUALIZE ESTA URL com a URL do seu frontend em produção no Render
 prod_origin = os.environ.get('FRONTEND_URL', 'https://clatoxicos.vercel.app') 
-
-# Configuração do CORS para permitir requisições do seu frontend
 CORS(
     app, 
     supports_credentials=True, 
@@ -448,12 +446,24 @@ def get_user_history(habby_id):
 def get_home_content():
     content = HomeContent.query.get(1)
     if content:
-        requirements_list = content.requirements.split(';') if content.requirements else []
+        # Lista fixa com 4 requisitos.
+        # Altere "Seu Requisito X" para os textos que você precisa.
+        fixed_requirements = [
+            "Seu Requisito 1",
+            "Seu Requisito 2",
+            "Seu Requisito 3",
+            "Seu Requisito 4"
+        ]
+        
         return jsonify({
-            'leader': content.leader, 'focus': content.focus, 'league': content.league,
-            'requirements': requirements_list, 'about_us': content.about_us,
+            'leader': content.leader,
+            'focus': content.focus,
+            'league': content.league,
+            'requirements': fixed_requirements,  # Usando a lista fixa
+            'about_us': content.about_us,
             'content_section': content.content_section,
         })
+        
     return jsonify({'error': 'Conteúdo não encontrado.'}), 404
 
 @app.route('/home-content', methods=['PUT'])
