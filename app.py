@@ -6,39 +6,52 @@ from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from functools import wraps
-from datetime import datetime # <- CORREÇÃO: Importação adicionada aqui
+from datetime import datetime
 from sqlalchemy import or_
 
 app = Flask(__name__)
- 
+
 # --- Configurações Iniciais ---
-# ATUALIZE ESTA URL com a URL do seu frontend em produção no Render
-prod_origin = os.environ.get('FRONTEND_URL', 'https://clatoxicos.vercel.app') 
+# URL do frontend em produção
+prod_origin = os.environ.get('FRONTEND_URL', 'https://clatoxicos.vercel.app')
+
+# --- ALTERAÇÃO 1: Configuração de CORS e Cookie ---
+# Habilita o CORS para todas as origens durante o desenvolvimento se nenhuma URL de frontend for definida.
+# Em produção, ele usará a URL do seu frontend.
+# O parâmetro 'methods' foi adicionado para garantir que todos os tipos de requisição sejam permitidos.
+# 'expose_headers' pode ser útil se o frontend precisar ler algum cabeçalho específico da resposta.
 CORS(
-    app, 
-    supports_credentials=True, 
-    origins=[prod_origin, 'http://localhost:5173'] # Mantém o localhost para desenvolvimento
+    app,
+    origins=prod_origin if prod_origin else "*",
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    supports_credentials=True,
+    expose_headers=["Content-Type", "Authorization"]
 )
 
-# Chave secreta para a sessão, lida de variáveis de ambiente
+# Chave secreta para a sessão
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 
+# --- ALTERAÇÃO 2: Configuração do Cookie de Sessão ---
+# Força o cookie de sessão a ser enviado em requisições de outros domínios.
+# Essencial para que a autenticação funcione em navegadores como Chrome e Edge
+# quando o frontend e o backend estão em domínios diferentes.
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+app.config['SESSION_COOKIE_SECURE'] = True # 'SameSite=None' exige que o cookie seja seguro (HTTPS)
+
 # --- Configuração do Banco de Dados (PostgreSQL via SQLAlchemy) ---
-# A URL do banco de dados é lida da variável de ambiente 'DATABASE_URL' configurada no Render
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
 # --- Modelos do Banco de Dados (Schema) ---
-# Estes modelos representam as tabelas do seu banco de dados PostgreSQL.
-
+# (O restante do seu código de modelos permanece o mesmo)
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(50), nullable=False, default='member') # Em PostgreSQL, isso pode ser um ENUM
+    role = db.Column(db.String(50), nullable=False, default='member')
     habby_id = db.Column(db.String(50), unique=True)
     profile = db.relationship('UserProfile', backref='user', uselist=False, cascade="all, delete-orphan")
 
@@ -106,12 +119,12 @@ class HomeContent(db.Model):
     leader = db.Column(db.String(255))
     focus = db.Column(db.String(255))
     league = db.Column(db.String(255))
-    requirements = db.Column(db.Text) # Armazena como string separada por ';'
+    requirements = db.Column(db.Text)
     about_us = db.Column(db.Text)
     content_section = db.Column(db.Text)
 
-
-# --- Decorators de Proteção de Rota ---
+# --- Decorators e Endpoints ---
+# (O restante do seu código de rotas permanece o mesmo)
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -132,8 +145,7 @@ def roles_required(allowed_roles):
         return decorated_function
     return wrapper
 
-# --- Endpoints (Rotas da API com Lógica SQLAlchemy) ---
-
+# ... (todas as suas rotas @app.route)
 @app.route('/register-user', methods=['POST'])
 def register_user():
     data = request.json
@@ -446,20 +458,12 @@ def get_user_history(habby_id):
 def get_home_content():
     content = HomeContent.query.get(1)
     if content:
-        # Lista fixa com 4 requisitos.
-        # Altere "Seu Requisito X" para os textos que você precisa.
-        fixed_requirements = [
-            "Seu Requisito 1",
-            "Seu Requisito 2",
-            "Seu Requisito 3",
-            "Seu Requisito 4"
-        ]
-        
+        requirements_list = content.requirements.split(';') if content.requirements else []
         return jsonify({
             'leader': content.leader,
             'focus': content.focus,
             'league': content.league,
-            'requirements': fixed_requirements,  # Usando a lista fixa
+            'requirements': requirements_list,
             'about_us': content.about_us,
             'content_section': content.content_section,
         })
@@ -498,10 +502,8 @@ def create_tables():
         print("Tabelas criadas com sucesso.")
 
 if __name__ == '__main__':
-    # Se você executar 'python app.py init-db' no seu terminal, isso irá criar as tabelas.
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == 'init-db':
         create_tables()
     else:
-        # Inicia o servidor de desenvolvimento
         app.run(debug=True, port=int(os.environ.get('PORT', 5000)))
