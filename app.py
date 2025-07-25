@@ -20,6 +20,7 @@ CORS(
     supports_credentials=True,
     expose_headers=["Content-Type", "Authorization"]
 )
+
 app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
 app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 app.config['SESSION_COOKIE_SECURE'] = True
